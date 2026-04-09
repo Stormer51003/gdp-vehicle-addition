@@ -7,6 +7,120 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
+  /* ── PIN Lock Screen ── */
+  .pin-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    background: #eef2f7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+  }
+  .pin-overlay.hidden { display: none; }
+  .pin-card {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+    width: 360px;
+    max-width: 92vw;
+    overflow: hidden;
+    text-align: center;
+  }
+  .pin-header {
+    background: #4a4f54;
+    padding: 28px 24px 22px;
+    position: relative;
+  }
+  .pin-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%;
+    height: 4px;
+    background: #00AEEF;
+  }
+  .pin-logo {
+    width: 48px; height: 48px;
+    margin: 0 auto 12px;
+  }
+  .pin-header h2 {
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 4px;
+  }
+  .pin-header p {
+    color: #00AEEF;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0;
+  }
+  .pin-body {
+    padding: 32px 28px 28px;
+  }
+  .pin-body label {
+    display: block;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #58595B;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .pin-inputs {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+  .pin-inputs input {
+    width: 48px; height: 56px;
+    border: 2px solid #dde3ea;
+    border-radius: 10px;
+    text-align: center;
+    font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: #2d3035;
+    background: #f8f9fb;
+    outline: none;
+    transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+    -moz-appearance: textfield;
+  }
+  .pin-inputs input::-webkit-outer-spin-button,
+  .pin-inputs input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .pin-inputs input:focus {
+    border-color: #00AEEF;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(0,174,239,0.15);
+  }
+  .pin-inputs input.pin-error {
+    border-color: #e53e3e;
+    background: #fff5f5;
+    animation: pin-shake 0.4s ease;
+  }
+  @keyframes pin-shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
+  }
+  .pin-msg {
+    font-size: 12px;
+    color: #e53e3e;
+    font-weight: 600;
+    min-height: 18px;
+    margin-top: 6px;
+  }
+  .pin-footer {
+    font-size: 11px;
+    color: #b0b8c4;
+    margin-top: 18px;
+  }
+
   :root {
     --cyan: #00AEEF;
     --cyan-dark: #0090c5;
@@ -501,6 +615,34 @@
 </style>
 </head>
 <body>
+
+<!-- PIN Lock Overlay -->
+<div class="pin-overlay" id="pinOverlay">
+  <div class="pin-card">
+    <div class="pin-header">
+      <svg class="pin-logo" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="20" cy="20" r="20" fill="#00AEEF" opacity="0.15"/>
+        <path d="M20 6C12.268 6 6 12.268 6 20s6.268 14 14 14 14-6.268 14-14S27.732 6 20 6z" stroke="#00AEEF" stroke-width="2" fill="none"/>
+        <path d="M14 20c0-3.314 2.686-6 6-6s6 2.686 6 6-2.686 6-6 6" stroke="#00AEEF" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="20" cy="20" r="2.5" fill="#00AEEF"/>
+      </svg>
+      <h2>GDP Insurance Brokers</h2>
+      <p>FSP No. 17566</p>
+    </div>
+    <div class="pin-body">
+      <label>Enter Access PIN</label>
+      <div class="pin-inputs" id="pinInputs">
+        <input type="number" maxlength="1" min="0" max="9" autocomplete="off" inputmode="numeric">
+        <input type="number" maxlength="1" min="0" max="9" autocomplete="off" inputmode="numeric">
+        <input type="number" maxlength="1" min="0" max="9" autocomplete="off" inputmode="numeric">
+        <input type="number" maxlength="1" min="0" max="9" autocomplete="off" inputmode="numeric">
+        <input type="number" maxlength="1" min="0" max="9" autocomplete="off" inputmode="numeric">
+      </div>
+      <div class="pin-msg" id="pinMsg"></div>
+      <div class="pin-footer">Authorised access only</div>
+    </div>
+  </div>
+</div>
 
 <!-- Header -->
 <header class="site-header">
@@ -1282,6 +1424,65 @@ function generatePDF() {
   showToast('✓ PDF generated successfully!', 'success');
 }
 
+// ── PIN Lock ──
+(function initPinLock() {
+  const PIN = '17566';
+  const overlay = document.getElementById('pinOverlay');
+  const inputs = document.querySelectorAll('#pinInputs input');
+  const msg = document.getElementById('pinMsg');
+
+  inputs[0].focus();
+
+  inputs.forEach((inp, i) => {
+    inp.addEventListener('input', function() {
+      this.value = this.value.slice(-1);
+      this.classList.remove('pin-error');
+      msg.textContent = '';
+
+      if (this.value && i < inputs.length - 1) {
+        inputs[i + 1].focus();
+      }
+
+      const code = Array.from(inputs).map(el => el.value).join('');
+      if (code.length === PIN.length) {
+        if (code === PIN) {
+          overlay.style.transition = 'opacity 0.4s ease';
+          overlay.style.opacity = '0';
+          setTimeout(() => overlay.classList.add('hidden'), 400);
+        } else {
+          msg.textContent = 'Incorrect PIN. Try again.';
+          inputs.forEach(el => el.classList.add('pin-error'));
+          setTimeout(() => {
+            inputs.forEach(el => { el.value = ''; el.classList.remove('pin-error'); });
+            inputs[0].focus();
+          }, 800);
+        }
+      }
+    });
+
+    inp.addEventListener('keydown', function(e) {
+      if (e.key === 'Backspace' && !this.value && i > 0) {
+        inputs[i - 1].focus();
+        inputs[i - 1].value = '';
+      }
+    });
+
+    inp.addEventListener('keypress', function(e) {
+      if (!/[0-9]/.test(e.key)) e.preventDefault();
+    });
+
+    inp.addEventListener('paste', function(e) {
+      e.preventDefault();
+      const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, PIN.length);
+      pasted.split('').forEach((ch, j) => {
+        if (inputs[j]) inputs[j].value = ch;
+      });
+      const focusIdx = Math.min(pasted.length, inputs.length - 1);
+      inputs[focusIdx].focus();
+      inputs[focusIdx].dispatchEvent(new Event('input'));
+    });
+  });
+})();
 </script>
 </body>
 </html>
